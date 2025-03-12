@@ -46,8 +46,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const url = urlInput.value.trim();
         if (!url) return;
         
-        // Simplified embed tag format as requested
-        const embedCode = `<embed src="${url}">`;
+        // Get the proxied URL for the embed code
+        const proxiedUrl = createProxiedUrl(url);
+        
+        // Create embed code with the proxied URL
+        const embedCode = `<iframe src="${proxiedUrl}" width="100%" height="500px" frameborder="0" allowfullscreen></iframe>`;
         
         // Copy to clipboard
         navigator.clipboard.writeText(embedCode)
@@ -92,6 +95,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to create embed element
     function createEmbed(url) {
+        // Create proxied URL
+        const proxiedUrl = createProxiedUrl(url);
+        
         // Open a new about:blank tab and fullscreen the embed
         const newTab = window.open('about:blank', '_blank');
         if (newTab) {
@@ -113,16 +119,29 @@ document.addEventListener('DOMContentLoaded', function() {
                             width: 100%;
                             height: 100vh;
                         }
-                        embed {
+                        embed, iframe {
                             width: 100%;
                             height: 100%;
                             border: none;
+                        }
+                        .proxy-info {
+                            position: absolute;
+                            bottom: 10px;
+                            right: 10px;
+                            background: rgba(0,0,0,0.7);
+                            color: #ff073a;
+                            padding: 5px 10px;
+                            border-radius: 4px;
+                            font-family: sans-serif;
+                            font-size: 12px;
+                            z-index: 9999;
                         }
                     </style>
                 </head>
                 <body>
                     <div class="embed-container">
-                        <embed src="${url}">
+                        <iframe src="${proxiedUrl}" allowfullscreen="true"></iframe>
+                        <div class="proxy-info">Proxied through embeddddr</div>
                     </div>
                 </body>
                 </html>
@@ -132,7 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Try to request fullscreen after a slight delay to ensure the DOM is ready
             setTimeout(() => {
                 try {
-                    const embedElement = newTab.document.querySelector('embed');
+                    const embedElement = newTab.document.querySelector('iframe');
                     if (embedElement && embedElement.requestFullscreen) {
                         embedElement.requestFullscreen();
                     }
@@ -143,12 +162,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Also update the original page embed content for preview
-        embedContent.innerHTML = `<embed src="${url}">`;
+        embedContent.innerHTML = `<iframe src="${proxiedUrl}" allowfullscreen="true"></iframe>`;
         
-        // Show a notice about plugin status
+        // Show a notice about proxy status
         const notice = document.createElement('div');
         notice.className = 'plugin-notice mt-2';
-        notice.innerHTML = 'Content is also opened in a new tab. If you see "plugin not found" here, check the new tab.';
+        notice.innerHTML = 'Content is proxied and also opened in a new tab for fullscreen viewing.';
         notice.style.color = '#ff073a';
         notice.style.fontSize = '0.8rem';
         notice.style.textAlign = 'center';
@@ -157,6 +176,20 @@ document.addEventListener('DOMContentLoaded', function() {
         const noticeContainer = document.querySelector('#embed-container');
         if (noticeContainer && !document.querySelector('.plugin-notice')) {
             noticeContainer.appendChild(notice);
+        }
+    }
+    
+    // Function to create a proxied URL
+    function createProxiedUrl(url) {
+        // For local development, handle differently than production
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        
+        if (isLocalhost) {
+            // During local development, use a CORS proxy service
+            return `https://corsproxy.io/?${encodeURIComponent(url)}`;
+        } else {
+            // On Netlify, use Netlify's redirect/proxy functionality
+            return `/proxy/${url}`;
         }
     }
     
