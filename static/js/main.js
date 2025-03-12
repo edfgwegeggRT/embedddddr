@@ -46,7 +46,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const url = urlInput.value.trim();
         if (!url) return;
         
-        const embedCode = `<embed src="${url}" type="application/x-unknown" width="100%" height="100%">`;
+        // Simplified embed tag format as requested
+        const embedCode = `<embed src="${url}">`;
         
         // Copy to clipboard
         navigator.clipboard.writeText(embedCode)
@@ -91,18 +92,72 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to create embed element
     function createEmbed(url) {
-        // Clear previous embed content
-        embedContent.innerHTML = '';
+        // Open a new about:blank tab and fullscreen the embed
+        const newTab = window.open('about:blank', '_blank');
+        if (newTab) {
+            // Add custom styling to the new tab
+            newTab.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Embeddddr - Fullscreen View</title>
+                    <style>
+                        body, html { 
+                            margin: 0; 
+                            padding: 0; 
+                            height: 100%; 
+                            overflow: hidden; 
+                            background: #121212;
+                        }
+                        .embed-container {
+                            width: 100%;
+                            height: 100vh;
+                        }
+                        embed {
+                            width: 100%;
+                            height: 100%;
+                            border: none;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="embed-container">
+                        <embed src="${url}">
+                    </div>
+                </body>
+                </html>
+            `);
+            newTab.document.close();
+            
+            // Try to request fullscreen after a slight delay to ensure the DOM is ready
+            setTimeout(() => {
+                try {
+                    const embedElement = newTab.document.querySelector('embed');
+                    if (embedElement && embedElement.requestFullscreen) {
+                        embedElement.requestFullscreen();
+                    }
+                } catch (err) {
+                    console.log('Fullscreen request failed:', err);
+                }
+            }, 500);
+        }
         
-        // Create new embed element
-        const embed = document.createElement('embed');
-        embed.src = url;
-        embed.type = 'application/x-unknown'; // Generic type
-        embed.width = '100%';
-        embed.height = '100%';
+        // Also update the original page embed content for preview
+        embedContent.innerHTML = `<embed src="${url}">`;
         
-        // Add the embed to the container
-        embedContent.appendChild(embed);
+        // Show a notice about plugin status
+        const notice = document.createElement('div');
+        notice.className = 'plugin-notice mt-2';
+        notice.innerHTML = 'Content is also opened in a new tab. If you see "plugin not found" here, check the new tab.';
+        notice.style.color = '#ff073a';
+        notice.style.fontSize = '0.8rem';
+        notice.style.textAlign = 'center';
+        
+        // Add the notice after the embed container
+        const noticeContainer = document.querySelector('#embed-container');
+        if (noticeContainer && !document.querySelector('.plugin-notice')) {
+            noticeContainer.appendChild(notice);
+        }
     }
     
     // Add input event listener to clear errors when typing
