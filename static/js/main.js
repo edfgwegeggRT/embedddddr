@@ -1,20 +1,24 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Get elements
-    const urlForm = document.getElementById('url-form');
-    const urlInput = document.getElementById('url-input');
+    // Get elements for the UV form
+    const uvForm = document.getElementById('uv-form');
+    const uvAddress = document.getElementById('uv-address');
     const errorMessage = document.getElementById('error-message');
     const embedContainer = document.getElementById('embed-container');
     const embedContent = document.getElementById('embed-content');
     const embedUrl = document.getElementById('embed-url');
     const emptyState = document.getElementById('empty-state');
     const copyButton = document.getElementById('copy-embed-code');
+    const embedButton = document.getElementById('embed-button');
 
-    // Handle form submission
-    urlForm.addEventListener('submit', function(e) {
+    // Initialize dynamic elements for fullscreen
+    let fullscreenElement = null;
+    
+    // Handle UV form submission (browse)
+    uvForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
         // Get the URL value
-        const url = urlInput.value.trim();
+        const url = uvAddress.value.trim();
         
         // Validate URL
         if (!isValidUrl(url)) {
@@ -25,8 +29,34 @@ document.addEventListener('DOMContentLoaded', function() {
         // Clear any previous errors
         clearError();
         
-        // Create the embed element
         try {
+            // Create the proxied URL with Ultraviolet
+            const encodedUrl = createProxiedUrl(url);
+            
+            // Navigate to the proxied page
+            window.location.href = encodedUrl;
+        } catch (error) {
+            showError('Failed to proxy the content. Please try another URL.');
+            console.error('Proxy error:', error);
+        }
+    });
+    
+    // Handle embed button click
+    embedButton.addEventListener('click', function() {
+        // Get the URL value
+        const url = uvAddress.value.trim();
+        
+        // Validate URL
+        if (!isValidUrl(url)) {
+            showError('Please enter a valid URL (e.g., https://example.com)');
+            return;
+        }
+        
+        // Clear any previous errors
+        clearError();
+        
+        try {
+            // Create the embed preview
             createEmbed(url);
             
             // Hide empty state and show embed container
@@ -43,11 +73,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Copy embed code button
     copyButton.addEventListener('click', function() {
-        const url = urlInput.value.trim();
+        const url = uvAddress.value.trim();
         if (!url) return;
         
-        // Simplified embed tag format as requested
-        const embedCode = `<embed src="${url}">`;
+        // Create embed code for iframe with proxied URL
+        const embedCode = `<iframe src="${window.location.origin}/embed?url=${encodeURIComponent(url)}" width="100%" height="500" frameborder="0" allowfullscreen></iframe>`;
         
         // Copy to clipboard
         navigator.clipboard.writeText(embedCode)
@@ -69,6 +99,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to validate URL
     function isValidUrl(url) {
         try {
+            // Add protocol if missing
+            if (!/^https?:\/\//i.test(url)) {
+                url = 'https://' + url;
+            }
             new URL(url);
             return true;
         } catch (e) {
@@ -79,101 +113,97 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to show error message
     function showError(message) {
         errorMessage.textContent = message;
-        urlInput.classList.add('is-invalid');
+        uvAddress.classList.add('is-invalid');
         errorMessage.style.display = 'block';
     }
     
     // Function to clear error message
     function clearError() {
         errorMessage.textContent = '';
-        urlInput.classList.remove('is-invalid');
+        uvAddress.classList.remove('is-invalid');
         errorMessage.style.display = 'none';
     }
     
-    // Function to create embed element
-    function createEmbed(url) {
-        // Open a new about:blank tab and fullscreen the embed
-        const newTab = window.open('about:blank', '_blank');
-        if (newTab) {
-            // Add custom styling to the new tab
-            newTab.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Embeddddr - Fullscreen View</title>
-                    <style>
-                        body, html { 
-                            margin: 0; 
-                            padding: 0; 
-                            height: 100%; 
-                            overflow: hidden; 
-                            background: #121212;
-                        }
-                        .embed-container {
-                            width: 100%;
-                            height: 100vh;
-                        }
-                        embed {
-                            width: 100%;
-                            height: 100%;
-                            border: none;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="embed-container">
-                        <embed src="${url}">
-                    </div>
-                </body>
-                </html>
-            `);
-            newTab.document.close();
-            
-            // Try to request fullscreen after a slight delay to ensure the DOM is ready
-            setTimeout(() => {
-                try {
-                    const embedElement = newTab.document.querySelector('embed');
-                    if (embedElement && embedElement.requestFullscreen) {
-                        embedElement.requestFullscreen();
-                    }
-                } catch (err) {
-                    console.log('Fullscreen request failed:', err);
-                }
-            }, 500);
+    // Function to create proxied URL using Ultraviolet
+    function createProxiedUrl(url) {
+        // Ensure URL has protocol
+        if (!/^https?:\/\//i.test(url)) {
+            url = 'https://' + url;
         }
         
-        // Also update the original page embed content for preview
-        embedContent.innerHTML = `<embed src="${url}">`;
+        // Encode URL using Ultraviolet's encoding
+        return __uv$config.prefix + __uv$config.encodeUrl(url);
+    }
+    
+    // Function to create embed preview
+    function createEmbed(url) {
+        // Create iframe with proxied content
+        const iframeSrc = `/proxy/${url}`;
+        embedContent.innerHTML = `<iframe src="${iframeSrc}" frameborder="0" allowfullscreen></iframe>`;
         
-        // Show a notice about plugin status
+        // Show a notice about proxied content
         const notice = document.createElement('div');
-        notice.className = 'plugin-notice mt-2';
-        notice.innerHTML = 'Content is also opened in a new tab. If you see "plugin not found" here, check the new tab.';
+        notice.className = 'proxy-notice mt-2';
+        notice.innerHTML = 'Content is being shown through our secure proxy. <a href="/embed?url=' + 
+            encodeURIComponent(url) + '" target="_blank">Open in full page</a>';
         notice.style.color = '#ff073a';
         notice.style.fontSize = '0.8rem';
         notice.style.textAlign = 'center';
         
-        // Add the notice after the embed container
-        const noticeContainer = document.querySelector('#embed-container');
-        if (noticeContainer && !document.querySelector('.plugin-notice')) {
-            noticeContainer.appendChild(notice);
+        // Add or update the notice
+        const existingNotice = document.querySelector('.proxy-notice');
+        if (existingNotice) {
+            existingNotice.innerHTML = notice.innerHTML;
+        } else {
+            const noticeContainer = document.querySelector('#embed-container');
+            if (noticeContainer) {
+                noticeContainer.appendChild(notice);
+            }
         }
     }
     
+    // Open fullscreen embed
+    function openFullscreenEmbed(url) {
+        // Remove any existing fullscreen element
+        if (fullscreenElement) {
+            document.body.removeChild(fullscreenElement);
+        }
+        
+        // Create fullscreen container
+        fullscreenElement = document.createElement('div');
+        fullscreenElement.className = 'fullscreen-embed';
+        
+        // Create controls
+        const controls = document.createElement('div');
+        controls.className = 'fullscreen-controls';
+        
+        // Add close button
+        const closeButton = document.createElement('button');
+        closeButton.innerHTML = '<i class="fas fa-times"></i>';
+        closeButton.title = 'Close fullscreen view';
+        closeButton.addEventListener('click', function() {
+            document.body.removeChild(fullscreenElement);
+            fullscreenElement = null;
+        });
+        
+        controls.appendChild(closeButton);
+        
+        // Create iframe
+        const iframe = document.createElement('iframe');
+        iframe.src = `/proxy/${url}`;
+        iframe.frameBorder = '0';
+        iframe.allowFullscreen = true;
+        
+        // Add to document
+        fullscreenElement.appendChild(controls);
+        fullscreenElement.appendChild(iframe);
+        document.body.appendChild(fullscreenElement);
+    }
+    
     // Add input event listener to clear errors when typing
-    urlInput.addEventListener('input', function() {
-        if (urlInput.classList.contains('is-invalid')) {
+    uvAddress.addEventListener('input', function() {
+        if (uvAddress.classList.contains('is-invalid')) {
             clearError();
         }
-    });
-    
-    // Add example URL functionality (optional helper)
-    document.querySelectorAll('.example-url').forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.preventDefault();
-            const exampleUrl = this.getAttribute('data-url');
-            urlInput.value = exampleUrl;
-            urlForm.dispatchEvent(new Event('submit'));
-        });
     });
 });

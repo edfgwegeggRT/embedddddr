@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>embeddddr - Embed Any URL Content</title>
+    <title>embeddddr - Browse & Embed with Ultraviolet</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -17,12 +17,15 @@
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Ultraviolet bundle script -->
+    <script src="https://cdn.jsdelivr.net/npm/@titaniumnetwork-dev/ultraviolet@2.0.0/dist/uv.bundle.js"></script>
 </head>
 <body>
     <div class="container">
         <header class="text-center mt-5">
             <h1 class="logo-text">embed<span class="neon-text">dddr</span></h1>
-            <p class="text-light">Embed any URL content with style</p>
+            <p class="text-light">Browse & embed with Ultraviolet proxy</p>
         </header>
 
         <main class="my-5">
@@ -30,18 +33,21 @@
                 <div class="col-md-10">
                     <div class="input-card">
                         <div class="card-body">
-                            <form id="url-form">
+                            <form id="uv-form">
                                 <div class="mb-3">
-                                    <label for="url-input" class="form-label">Enter URL to embed</label>
+                                    <label for="uv-address" class="form-label">Enter URL to browse or embed</label>
                                     <div class="input-group">
-                                        <input type="url" class="form-control" id="url-input" 
+                                        <input type="url" class="form-control" id="uv-address" 
                                             placeholder="https://example.com" required>
                                         <button class="btn btn-embed" type="submit">
+                                            <i class="fas fa-search"></i> Browse
+                                        </button>
+                                        <button class="btn btn-embed ms-2" type="button" id="embed-button">
                                             <i class="fas fa-code"></i> Embed
                                         </button>
                                     </div>
                                     <div class="form-text">
-                                        Enter any URL you want to embed (e.g. PDF, video, document)
+                                        Enter any URL you want to browse or embed through our proxy
                                     </div>
                                     <div id="error-message" class="invalid-feedback"></div>
                                 </div>
@@ -66,9 +72,40 @@
                     </div>
                     
                     <div id="empty-state" class="text-center p-5">
-                        <i class="fas fa-link fa-4x mb-3 neon-icon"></i>
-                        <h3>Ready to embed</h3>
-                        <p class="text-light">Enter a URL above to see it embedded here</p>
+                        <i class="fas fa-globe fa-4x mb-3 neon-icon"></i>
+                        <h3>Browse anonymously</h3>
+                        <p class="text-light">Enter a URL above to browse or embed through our proxy</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Features Section -->
+            <div class="row justify-content-center mt-5">
+                <div class="col-md-10">
+                    <div class="features-container">
+                        <div class="row text-center">
+                            <div class="col-md-4 mb-4">
+                                <div class="feature-card">
+                                    <i class="fas fa-mask fa-3x mb-3 neon-icon"></i>
+                                    <h4>Anonymous Browsing</h4>
+                                    <p>Browse websites through our secure proxy service</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-4">
+                                <div class="feature-card">
+                                    <i class="fas fa-code fa-3x mb-3 neon-icon"></i>
+                                    <h4>Easy Embed</h4>
+                                    <p>Generate embed codes for any website to share</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-4">
+                                <div class="feature-card">
+                                    <i class="fas fa-bolt fa-3x mb-3 neon-icon"></i>
+                                    <h4>Lightning Fast</h4>
+                                    <p>Optimized proxy service for smooth browsing</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -76,13 +113,16 @@
 
         <footer class="text-center py-4">
             <p class="text-light">
-                <small>&copy; 2023 embeddddr - Embed with style</small>
+                <small>&copy; 2023 embeddddr - Browse & Embed with Ultraviolet proxy</small>
             </p>
         </footer>
     </div>
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- UV Config -->
+    <script src="{{ url_for('static', filename='uv/uv.config.js') }}"></script>
     
     <!-- Custom JavaScript -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>

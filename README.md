@@ -1,50 +1,74 @@
 # Embeddddr
 
-A neon red and black themed static website that allows users to embed content from URLs using a proxied server to improve compatibility and avoid cross-origin issues.
+A neon red and black themed web application that allows users to browse and embed content from any URL using the Ultraviolet proxy service, providing anonymity and bypassing content restrictions.
 
 ## Features
 
-- Enter any URL and display it through a proxied server
-- Open embedded content in a new tab in fullscreen mode
-- Copy embed code for use on other websites
-- Proxy content to avoid cross-origin issues and improve compatibility
-- Stylish neon red and black theme
-- Fully static site with Netlify proxy functionality
+- Browse any website anonymously through the Ultraviolet proxy
+- Embed proxied content in your own websites
+- Generate embeddable iframe code to share proxied content
+- View content in full-page mode
+- Neon red and black cyberpunk aesthetic
+- Server-side proxy implementation for maximum compatibility
 
-## Deployment on Netlify
+## Technology Stack
 
-This site is ready for deployment on Netlify. Here's how to deploy it:
+- **Backend**: Flask (Python)
+- **Frontend**: HTML5, CSS3, JavaScript
+- **Proxy Service**: Ultraviolet
+- **Styling**: Bootstrap with custom neon theme
 
-1. Sign up for a Netlify account at [netlify.com](https://www.netlify.com/)
-2. Click the "New site from Git" button
-3. Connect your Git provider (GitHub, GitLab, or Bitbucket)
-4. Select this repository
-5. Leave the build command empty (the site is already built)
-6. Set the publish directory to `.` (the root of the repo)
-7. Click "Deploy site"
+## Getting Started
 
-The `netlify.toml` file in this repository already contains the necessary configuration for deployment.
+### Prerequisites
 
-## Local Development
+- Python 3.6+
+- Flask
 
-To run this site locally, simply open the `index.html` file in a web browser. When running locally, the site will use a public CORS proxy service (corsproxy.io) for development purposes.
+### Installation
 
-## How Proxy Works
+1. Clone the repository
+2. Install dependencies:
+   ```
+   pip install flask requests gunicorn
+   ```
+3. Run the application:
+   ```
+   python main.py
+   ```
+   or with Gunicorn:
+   ```
+   gunicorn --bind 0.0.0.0:5000 main:app
+   ```
 
-The proxy functionality works differently depending on the environment:
+### Usage
 
-1. **In production (Netlify)**: Uses Netlify's redirect/proxy functionality to fetch content server-side, avoiding CORS issues.
-   - The `/proxy/*` path in netlify.toml is configured to proxy requests to external domains.
-   - Headers are set to allow cross-origin access.
+1. Enter a URL in the search box
+2. Click "Browse" to navigate to the site through the proxy
+3. Click "Embed" to create an embeddable version of the content
+4. Use the "Copy" button to get the iframe code for embedding
 
-2. **In local development**: Uses corsproxy.io as a fallback to enable testing without deploying.
+## Proxy Implementation
 
-This approach:
-- Improves compatibility with different content types
-- Avoids cross-origin restrictions
-- Allows embedding content from sites that otherwise couldn't be embedded
-- Works with PDFs, videos, and other media types
+The application uses a combination of server-side and client-side proxying:
+
+1. **Server-side proxy**: All requests to `/proxy/` are forwarded through the Flask backend, which handles URL forwarding and header management.
+
+2. **Ultraviolet integration**: For client-side browsing, the app integrates with Ultraviolet's JavaScript library to provide seamless browsing capabilities.
+
+## Security Considerations
+
+This proxy should be used responsibly:
+
+- The proxy anonymizes browsing but is not a complete security solution
+- Be aware of legal and terms of service implications when proxying content
+- The application doesn't store browsing history or user data
 
 ## License
 
-This project is open source and available for personal and commercial use.
+This project is open source and available for personal and educational use.
+
+## Acknowledgments
+
+- Ultraviolet proxy service for the core browsing technology
+- Bootstrap for responsive design framework
